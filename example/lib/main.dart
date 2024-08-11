@@ -28,9 +28,9 @@ class UploadPage extends StatefulWidget {
 
 class _UploadPageState extends State<UploadPage> {
   double _progress = 0;
-  XFile _file;
-  TusClient _client;
-  Uri _fileUrl;
+  XFile? _file;
+  TusClient? _client;
+  Uri? _fileUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -56,11 +56,12 @@ class _UploadPageState extends State<UploadPage> {
                 color: Colors.teal,
                 child: InkWell(
                   onTap: () async {
-                    _file =
-                        await _getXFile(await FilePicker.platform.pickFiles());
+                    final pickerResult = await FilePicker.platform.pickFiles();
+                    final file = await _getXFile(pickerResult);
                     setState(() {
                       _progress = 0;
                       _fileUrl = null;
+                      _file = file;
                     });
                   },
                   child: Container(
@@ -91,15 +92,15 @@ class _UploadPageState extends State<UploadPage> {
                               print("Create a client");
                               _client = TusClient(
                                 Uri.parse("https://master.tus.io/files/"),
-                                _file,
+                                _file!,
                                 store: TusMemoryStore(),
                               );
 
                               print("Starting upload");
-                              await _client.upload(
+                              await _client!.upload(
                                 onComplete: () async {
                                   print("Completed!");
-                                  setState(() => _fileUrl = _client.uploadUrl);
+                                  setState(() => _fileUrl = _client!.uploadUrl);
                                 },
                                 onProgress: (progress) {
                                   print("Progress: $progress");
@@ -113,10 +114,10 @@ class _UploadPageState extends State<UploadPage> {
                   SizedBox(width: 8),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _progress == 0
+                      onPressed: _progress == 0 && _client == null
                           ? null
                           : () async {
-                              _client.pause();
+                              _client!.pause();
                             },
                       child: Text("Pause"),
                     ),
@@ -154,7 +155,7 @@ class _UploadPageState extends State<UploadPage> {
               onTap: _progress != 100
                   ? null
                   : () async {
-                      await launch(_fileUrl.toString());
+                      await launchUrl(Uri.parse(_fileUrl.toString()));
                     },
               child: Container(
                 color: _progress == 100 ? Colors.green : Colors.grey,
@@ -171,16 +172,16 @@ class _UploadPageState extends State<UploadPage> {
   }
 
   /// Copy file to temporary directory before uploading
-  Future<XFile> _getXFile(FilePickerResult result) async {
+  Future<XFile?> _getXFile(FilePickerResult? result) async {
     if (result != null) {
       final chosenFile = result.files.first;
       if (chosenFile.path != null) {
         // Android, iOS, Desktop
-        return XFile(chosenFile.path);
-      } else {
+        return XFile(chosenFile.path!);
+      } else if (chosenFile.bytes != null) {
         // Web
         return XFile.fromData(
-          chosenFile.bytes,
+          chosenFile.bytes!,
           name: chosenFile.name,
         );
       }

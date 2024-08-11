@@ -4,17 +4,18 @@ version: 1.0.2
 homepage: https://github.com/jjmutumi/tus_client
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  cross_file: ^0.3.1+4
-  http: ^0.13.0
+  cross_file: ^0.3.4+2
+  http: ^1.2.2
   path: ^1.7.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  build_runner: any
+
   mockito: ^5.0.3
-  build_runner: ^1.11.0
